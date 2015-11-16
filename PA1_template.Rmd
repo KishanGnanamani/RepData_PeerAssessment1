@@ -1,25 +1,85 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+Reproducible Research - Peer Assignment 1
+=========================================
+
+  
+This is my Rmarkdown file for the Reproducible Research - Peer Assignment 1  
+  
+
+##1. Loading and Preprocessing data
+
+``` {r}
+ ActvityData <- read.csv("C:/users/kishan/documents/DS/DS5/activity.csv")
+ ActvityData[,2] <- as.Date(ActvityData[,2],format = "%Y-%m-%d")
+```
+
+##2. What is mean total number of steps taken per day?
+
+``` {r}
+ StepsByDayData <- aggregate(steps~date,ActvityData,sum)
+ hist(StepsByDayData$steps,col = "green",main = "Histogram for Total # of steps taken each day", xlab = "Total # of steps taken each day")
+ meanSBD <- mean(StepsByDayData$steps)
+ medianSBD <- median(StepsByDayData$steps)
+```
+
+- Mean of total number of steps taken per day in the original dataset is **`r meanSBD`** and the Median of total number of steps taken per day in the original dataset is **`r medianSBD`**
+
+##3. What is the average daily activity pattern?
+
+``` {r}
+ StepsByIntervalData <- aggregate(steps~interval,ActvityData,mean)
+ plot(StepsByIntervalData$interval,StepsByIntervalData$steps,type = "l", xlab = "5 Min Interval", ylab = "Average # of steps taken", main = " Time series plot of interval and the avg # of steps taken across all days")
+ maxStepsInterval <- subset(StepsByIntervalData,StepsByIntervalData$steps == max(StepsByIntervalData$steps))[1,1]
+```
+
+- The 5-minute interval, on average across all the days in the dataset that contains the maximum number of steps is **`r maxStepsInterval`** 
+
+##4. Imputing missing values
+
+``` {r}
+ nacount <- sum(is.na(ActvityData$steps))
+ 
+ ActvitynaData <- subset(ActvityData, is.na(ActvityData$steps))
+ for (i in 1:nrow(ActvitynaData))
+ {
+    tempvalue <- ActvitynaData[i,3]
+    ActvitynaData[i,1] <- subset(StepsByIntervalData,StepsByIntervalData[,1]==tempvalue)[1,2]
+ }
+ 
+ ActvitynnaData <- subset(ActvityData, !is.na(ActvityData$steps))
+ newActvityData <- rbind(ActvitynaData,ActvitynnaData)
+ 
+ newStepsByDayData <- aggregate(steps~date,newActvityData,sum)
+ hist(newStepsByDayData$steps,col = "green",main = "Histogram for Total # of steps taken each day", xlab = "Total # of steps taken each day")
+ newmeanSBD <- mean(newStepsByDayData$steps)
+ newmedianSBD <- median(newStepsByDayData$steps)
+```
+
+- Total # of missing values in the original dataset is **`r nacount`**  
+- Mean of total number of steps taken per day in the new dataset is **`r newmeanSBD`** and the Median of total number of steps taken per day in the new dataset is **`r newmedianSBD`**  
+- There are **no changes** in the mean of total number of steps taken per day between the original and the new datasets  
+- The Median of total number of steps taken per day in the new dataset is **higher** than the median in the original dataset  
+
+##5. Are there differences in activity patterns between weekdays and weekends?
+
+``` {r}
+ weekdayslist <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+ newActvityData$wdayind <- factor((weekdays(newActvityData$date) %in% weekdayslist), levels=c(FALSE, TRUE), labels=c('weekend', 'weekday'))
+ 
+ newStepsByIntervalData <- aggregate(steps~interval+wdayind,newActvityData,mean)
+ library(ggplot2)
+ g <- ggplot(newStepsByIntervalData,aes(interval,steps))
+ g+ geom_line(color = "green") + facet_grid(wdayind~.) + labs(x = "Interval",y = "Number of Steps")
+ 
+ wdmeanSBI <- mean(subset(newStepsByIntervalData,wdayind = 'weekday')$steps)
+ wemeanSBI <- mean(subset(newStepsByIntervalData,wdayind = 'weekend')$steps)
+ wdmedianSBI <- median(subset(newStepsByIntervalData,wdayind = 'weekday')$steps)
+ wemedianSBI <- median(subset(newStepsByIntervalData,wdayind = 'weekend')$steps)
+```
+
+- Mean of total number of steps taken per day during weekends is **`r wemeanSBI`**
+- Mean of total number of steps taken per day during weekdays is **`r wdmeanSBI`** 
+- Median of total number of steps taken per day during weekends is **`r wemedianSBI`** 
+- Median of total number of steps taken per day during weekdays is **`r wdmedianSBI`**   
+- There is **no difference** in activity patterns between weekdays and weekends
 
 
-## Loading and preprocessing the data
-
-
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
